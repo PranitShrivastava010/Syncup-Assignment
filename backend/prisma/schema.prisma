@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("CANDIDATE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tokens        UserToken[]
+  resumes       Resume[]
+  postedJobs    Job[]          @relation("PostedJobs")
+  applications  Application[]
+  notifications Notification[]
+}
+
+model UserToken {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Job {
+  id             String   @id @default(uuid())
+  title          String
+  description    String
+  requirements   String?
+  companyName    String
+  location       String
+  employmentType String
+  salaryMin      Int?
+  salaryMax      Int?
+  isRemote       Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  postedById     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  postedBy     User?         @relation("PostedJobs", fields: [postedById], references: [id], onDelete: SetNull)
+  applications Application[]
+
+  @@index([title])
+  @@index([companyName])
+  @@index([location])
+  @@index([isRemote])
+  @@index([createdAt])
+}
+
+model Resume {
+  id            String   @id @default(uuid())
+  userId        String
+  originalName  String
+  storagePath   String
+  fileUrl       String
+  extractedText String?
+  createdAt     DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@index([userId])
+}
+
+model Application {
+  id           String            @id @default(uuid())
+  userId       String
+  jobId        String
+  resumeId     String?
+  coverLetter  String?
+  status       String            @default("PENDING")
+  matchScore   Float?
+  matchSummary String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job    Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, jobId])
+  @@index([status])
+  @@index([userId, createdAt])
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  payload   String?
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}

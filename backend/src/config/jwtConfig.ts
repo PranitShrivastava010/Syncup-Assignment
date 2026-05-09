@@ -1,0 +1,9 @@
+export const JWT_CONFIG = {
+  ACCESS_SECRET: process.env.ACCESS_TOKEN_SECRET!,
+  ACCESS_EXPIRES_IN: "1d",
+
+  REFRESH_SECRET: process.env.REFRESH_TOKEN_SECRET!,
+  REFRESH_EXPIRES_IN: "7d",
+} as const;
+
+export const GROQ_KEY = process.env.GROQ_API_KEY;

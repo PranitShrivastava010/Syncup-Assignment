@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+*.log
+uploads/resumes/*
+!uploads/resumes/.gitkeep
+prisma/dev.db
+prisma/dev.db-journal

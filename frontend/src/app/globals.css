@@ -1,0 +1,37 @@
+:root {
+  --color-ink: #101418;
+  --color-cloud: #f6f7f9;
+  --color-teal: #14b8a6;
+  --color-amber: #f59e0b;
+  --color-paper: #ffffff;
+  --color-muted: #5c6673;
+  --color-line: #d8dee5;
+  --shadow-soft: 0 24px 80px rgba(16, 20, 24, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--color-cloud);
+  color: var(--color-ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}

@@ -1,0 +1,135 @@
+.form {
+  width: min(100%, 430px);
+}
+
+.formHeader {
+  margin-bottom: 28px;
+}
+
+.formHeader p {
+  margin: 0 0 10px;
+  color: var(--color-teal);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.formHeader h2 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.formHeader span {
+  display: block;
+  margin-top: 14px;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.fields {
+  display: grid;
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field > span,
+.roleGroup > span {
+  color: #303a45;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.inputWrap {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-paper);
+}
+
+.inputWrap:focus-within {
+  border-color: var(--color-teal);
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+}
+
+.inputWrap svg {
+  color: var(--color-muted);
+}
+
+.inputWrap input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: var(--color-ink);
+  background: transparent;
+}
+
+.roleGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.roleOptions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.roleOptions button {
+  min-height: 46px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  color: var(--color-muted);
+  background: var(--color-paper);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.roleOptions .roleActive {
+  color: #0f766e;
+  border-color: rgba(20, 184, 166, 0.48);
+  background: rgba(20, 184, 166, 0.1);
+}
+
+.submitButton {
+  width: 100%;
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--color-paper);
+  background: var(--color-ink);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.submitButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.switchText {
+  margin: 22px 0 0;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.switchText a {
+  color: #0f766e;
+  font-weight: 900;
+}

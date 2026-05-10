@@ -1,0 +1,38 @@
+
+> syncup_frontend@1.0.0 dev
+> next dev -p 3001
+
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.1.6:3001
+
+ ✓ Starting...
+ ✓ Ready in 5.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 4s (539 modules)
+ GET / 200 in 6368ms
+ GET / 200 in 347ms
+ GET / 200 in 350ms
+ ✓ Compiled in 985ms (323 modules)
+ GET / 200 in 792ms
+ ✓ Compiled in 328ms (323 modules)
+ GET / 200 in 427ms
+ ✓ Compiled in 677ms (323 modules)
+ ✓ Compiled in 196ms (323 modules)
+ GET / 200 in 202ms
+ ✓ Compiled in 337ms (323 modules)
+ GET / 200 in 528ms
+ ✓ Compiled in 336ms (323 modules)
+ GET / 200 in 288ms
+ ✓ Compiled in 950ms (539 modules)
+ ✓ Compiled in 614ms (539 modules)
+ GET / 200 in 303ms
+ ○ Compiling /register ...
+ ✓ Compiled /register in 7.5s (671 modules)
+ GET /register 200 in 8829ms
+ GET /login 200 in 8866ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 5.3s (1018 modules)
+ GET / 200 in 5726ms
+ GET / 500 in 8770ms
+ GET / 200 in 693ms

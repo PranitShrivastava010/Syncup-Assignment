@@ -5,8 +5,6 @@ import { initializeNotificationSocket } from "./src/sockets/notification.socket"
 
 const PORT = Number(process.env.PORT ?? 5000);
 
-// Only create a manual server and listen if we're not on Vercel
-// Vercel handles the listener for us.
 if (process.env.VERCEL !== "1") {
   const server = http.createServer(app);
   initializeNotificationSocket(server);
@@ -17,6 +15,5 @@ if (process.env.VERCEL !== "1") {
   });
 }
 
-// Important for Vercel: export the app
 export default app;
 

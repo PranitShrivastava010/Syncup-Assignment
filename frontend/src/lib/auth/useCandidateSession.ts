@@ -16,7 +16,6 @@ export const useCandidateSession = () => {
     let cancelled = false;
 
     const init = async () => {
-      // ── 1. Fast path: valid session already in localStorage ──────────────
       const stored = getAuthSession();
 
       if (stored) {
@@ -31,9 +30,6 @@ export const useCandidateSession = () => {
         return;
       }
 
-      // ── 2. Slow path: no localStorage → try silent refresh via cookie ────
-      // The httpOnly refreshToken cookie might still be alive even though
-      // localStorage was cleared (browser close, etc.).
       try {
         const result = await authApi.refresh();
 
@@ -55,10 +51,8 @@ export const useCandidateSession = () => {
           return;
         }
       } catch {
-        // refresh failed (token expired / network error) — fall through to login
       }
 
-      // ── 3. No valid session at all → redirect to login ───────────────────
       router.replace(ROUTES.login);
     };
 
@@ -68,4 +62,5 @@ export const useCandidateSession = () => {
 
   return { session, isCheckingSession };
 };
+
 

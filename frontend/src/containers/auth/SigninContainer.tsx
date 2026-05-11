@@ -35,7 +35,6 @@ export function SigninContainer() {
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ── Redirect if already logged in ─────────────────────────────────────────
   useEffect(() => {
     const session = getAuthSession();
     if (session) {
@@ -44,6 +43,7 @@ export function SigninContainer() {
       );
     }
   }, [router]);
+
 
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

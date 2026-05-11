@@ -16,7 +16,6 @@ export const useRecruiterSession = () => {
     let cancelled = false;
 
     const init = async () => {
-      // ── 1. Fast path: valid session already in localStorage ──────────────
       const stored = getAuthSession();
 
       if (stored) {
@@ -31,7 +30,6 @@ export const useRecruiterSession = () => {
         return;
       }
 
-      // ── 2. Slow path: no localStorage → try silent refresh via cookie ────
       try {
         const result = await authApi.refresh();
 
@@ -53,10 +51,8 @@ export const useRecruiterSession = () => {
           return;
         }
       } catch {
-        // refresh failed — fall through to login
       }
 
-      // ── 3. No valid session at all → redirect to login ───────────────────
       router.replace(ROUTES.login);
     };
 
@@ -66,4 +62,5 @@ export const useRecruiterSession = () => {
 
   return { session, isCheckingSession };
 };
+
 

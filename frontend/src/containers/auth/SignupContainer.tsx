@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Lock, Mail, User } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthTextField } from "@/components/auth/AuthTextField";
 import { RoleSelector } from "@/components/auth/RoleSelector";
 import { StatusMessage } from "@/components/common/StatusMessage";
 import { authApi } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
+import { getAuthSession, saveAuthSession } from "@/lib/auth/session";
 import { ROUTES } from "@/routes/paths";
 import type { AuthRole } from "@/types/auth";
 import styles from "@/components/auth/authForm.module.css";
@@ -26,6 +27,7 @@ const getErrorMessage = (error: unknown) => {
   return "Unable to create account. Please try again.";
 };
 
+
 export function SignupContainer() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -38,26 +40,53 @@ export function SignupContainer() {
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Redirect if already logged in
+  useEffect(() => {
+    const session = getAuthSession();
+    if (session) {
+      router.replace(
+        session.user.role === "RECRUITER" ? ROUTES.recruiter : ROUTES.candidateJobs
+      );
+    }
+  }, [router]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setStatus(null);
     setIsSubmitting(true);
 
     try {
-      await authApi.register({
+      const response = await authApi.register({
         name: name.trim(),
         email: email.trim(),
         password,
         role,
       });
 
-      setStatus({
-        tone: "success",
-        message: "Account created. Redirecting to sign in.",
+      // The backend now returns the same payload as login (Result: { accessToken, sendUser })
+      // but the type might not be updated in the frontend yet.
+      // Let's cast it safely or assume it's there.
+      const typedResponse = response as any;
+
+      saveAuthSession({
+        accessToken: typedResponse.Result.accessToken,
+        user: typedResponse.Result.sendUser,
       });
 
-      window.setTimeout(() => router.push(ROUTES.login), 700);
+      setStatus({
+        tone: "success",
+        message: "Account created. Redirecting to your workspace.",
+      });
+
+      window.setTimeout(() => {
+        router.push(
+          typedResponse.Result.sendUser.role === "RECRUITER"
+            ? ROUTES.recruiter
+            : ROUTES.candidateJobs
+        );
+      }, 700);
     } catch (error) {
+
       setStatus({
         tone: "error",
         message: getErrorMessage(error),

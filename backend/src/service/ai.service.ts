@@ -109,26 +109,31 @@ export const calculateResumeMatchService = async ({
   }
 
   const prompt = `
-You are an ATS resume matching engine.
+You are an expert ATS (Applicant Tracking System) matching engine. Your task is to analyze a candidate's resume against a job description and provide a high-precision match report.
 
-Rules:
-- Return only valid JSON.
-- Do not include markdown.
-- Score should be a number from 0 to 100.
-- Matched and missing keywords must be short strings.
+CRITICAL RULES:
+1. Return ONLY valid JSON. No markdown, no preamble.
+2. Be extremely thorough in keyword extraction.
+3. Matching is CASE-INSENSITIVE. If "MySQL" is in the job and "mysql" or "MySQL" is in the resume, it is a MATCH.
+4. If a skill is mentioned in the resume, DO NOT put it in missingKeywords.
+5. Provide a constructive, professional summary of the fit.
 
-Resume:
+Resume Content:
+---
 ${resumeText}
+---
 
-Job:
+Job Description:
+---
 ${jobText}
+---
 
-Output JSON shape:
+Output JSON Format:
 {
-  "score": number,
+  "score": number (0-100),
   "matchedKeywords": string[],
   "missingKeywords": string[],
-  "summary": string
+  "summary": string (2-3 sentences)
 }
 `;
 
@@ -136,8 +141,9 @@ Output JSON shape:
     const completion = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
+      temperature: 0.0,
     });
+
 
     const content = completion.choices[0]?.message?.content;
     if (!content) {

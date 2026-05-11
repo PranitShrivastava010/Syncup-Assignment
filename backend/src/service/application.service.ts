@@ -45,20 +45,13 @@ export const applyToJobService = async (
     throw createHttpError(409, "You have already applied to this job");
   }
 
-  const match = await calculateResumeMatchService({
-    userId,
-    resumeId: input.resumeId,
-    jobId: input.jobId,
-  });
-
   const application = await prisma.application.create({
     data: {
       userId,
       jobId: input.jobId,
       resumeId: input.resumeId,
       coverLetter: input.coverLetter,
-      matchScore: match?.score,
-      matchSummary: match?.summary,
+      status: "PENDING",
     },
     include: {
       job: true,
@@ -66,15 +59,46 @@ export const applyToJobService = async (
     },
   });
 
+  // Start matching in background - do NOT await
+  calculateResumeMatchService({
+    userId,
+    resumeId: input.resumeId,
+    jobId: input.jobId,
+  })
+    .then(async (match) => {
+      await prisma.application.update({
+        where: { id: application.id },
+        data: {
+          matchScore: match?.score,
+          matchSummary: match?.summary,
+        },
+      });
+
+      await createNotificationService(userId, {
+        type: "APPLICATION_MATCH_READY",
+        title: "Match score ready",
+        message: `Your AI match score for ${job.title} is ${match?.score}%.`,
+        payload: {
+          applicationId: application.id,
+          jobId: job.id,
+          score: match?.score,
+        },
+      });
+    })
+    .catch((err) => {
+      console.error("[Background Match Error]", err);
+    });
+
   await createNotificationService(userId, {
     type: "APPLICATION_SUBMITTED",
     title: "Application submitted",
-    message: `Your application for ${job.title} was submitted.`,
+    message: `Your application for ${job.title} was submitted. AI matching is in progress.`,
     payload: {
       applicationId: application.id,
       jobId: job.id,
     },
   });
+
 
   if (job.postedById && job.postedById !== userId) {
     await createNotificationService(job.postedById, {
@@ -90,8 +114,8 @@ export const applyToJobService = async (
 
   return {
     application,
-    match,
   };
+
 };
 
 export const getMyApplicationsService = async (

@@ -11,6 +11,8 @@ const app = express();
 const defaultAllowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5175",
@@ -27,10 +29,51 @@ const allowedOrigins = new Set([
   ...configuredOrigins,
 ]);
 
+const devFrontendPorts = new Set([
+  "3000",
+  "3001",
+  "5173",
+  "5174",
+  "5175",
+  "5176",
+]);
+
+const isPrivateNetworkHost = (hostname: string) => {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]" ||
+    /^192\.168\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
+  );
+};
+
+const isAllowedDevelopmentOrigin = (origin: string) => {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+
+  try {
+    const url = new URL(origin);
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      devFrontendPorts.has(url.port) &&
+      isPrivateNetworkHost(url.hostname)
+    );
+  } catch {
+    return false;
+  }
+};
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.has(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.has(origin) ||
+        isAllowedDevelopmentOrigin(origin)
+      ) {
         callback(null, true);
         return;
       }

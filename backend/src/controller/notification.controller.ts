@@ -1,17 +1,22 @@
 import { Request, Response } from "express";
 import {
   getMyNotificationsService,
+  markAllNotificationsReadService,
   markNotificationReadService,
 } from "../service/notification.service";
 import { asyncHandler } from "../utils/asyncHandler";
+import { getPaginationParams } from "../utils/pagination";
 
 export const getMyNotificationsController = asyncHandler(
   async (req: Request, res: Response) => {
-    const notifications = await getMyNotificationsService(req.user!.userId);
+    const result = await getMyNotificationsService(
+      req.user!.userId,
+      getPaginationParams(req.query)
+    );
 
     res.status(200).json({
       success: true,
-      result: notifications,
+      ...result,
     });
   }
 );
@@ -26,6 +31,18 @@ export const markNotificationReadController = asyncHandler(
     res.status(200).json({
       success: true,
       result: notification,
+    });
+  }
+);
+
+export const markAllNotificationsReadController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await markAllNotificationsReadService(req.user!.userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Notifications marked as read",
+      result,
     });
   }
 );

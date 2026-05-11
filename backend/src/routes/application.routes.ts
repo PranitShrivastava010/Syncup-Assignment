@@ -5,6 +5,7 @@ import {
   updateApplicationStatusController,
 } from "../controller/application.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { requireRole } from "../middlewares/role.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import {
   applyJobSchema,
@@ -13,11 +14,23 @@ import {
 
 const router = Router();
 
-router.get("/", authMiddleware, getMyApplicationsController);
-router.post("/", authMiddleware, validate(applyJobSchema), applyToJobController);
+router.get(
+  "/",
+  authMiddleware,
+  requireRole("CANDIDATE"),
+  getMyApplicationsController
+);
+router.post(
+  "/",
+  authMiddleware,
+  requireRole("CANDIDATE"),
+  validate(applyJobSchema),
+  applyToJobController
+);
 router.patch(
   "/:id/status",
   authMiddleware,
+  requireRole("RECRUITER"),
   validate(updateApplicationStatusSchema),
   updateApplicationStatusController
 );

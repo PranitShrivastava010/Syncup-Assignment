@@ -2,10 +2,11 @@ import { prisma } from "../lib/prisma";
 import { calculateResumeMatchService } from "./ai.service";
 import { createNotificationService } from "./notification.service";
 import { createHttpError } from "../utils/httpError";
+import { buildPaginationMeta, PaginationParams } from "../utils/pagination";
 
 export type ApplyJobInput = {
   jobId: string;
-  resumeId?: string;
+  resumeId: string;
   coverLetter?: string;
 };
 
@@ -28,17 +29,27 @@ export const applyToJobService = async (
     throw createHttpError(404, "Job not found");
   }
 
-  let match:
-    | Awaited<ReturnType<typeof calculateResumeMatchService>>
-    | undefined;
+  const existingApplication = await prisma.application.findUnique({
+    where: {
+      userId_jobId: {
+        userId,
+        jobId: input.jobId,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
 
-  if (input.resumeId) {
-    match = await calculateResumeMatchService({
-      userId,
-      resumeId: input.resumeId,
-      jobId: input.jobId,
-    });
+  if (existingApplication) {
+    throw createHttpError(409, "You have already applied to this job");
   }
+
+  const match = await calculateResumeMatchService({
+    userId,
+    resumeId: input.resumeId,
+    jobId: input.jobId,
+  });
 
   const application = await prisma.application.create({
     data: {
@@ -83,15 +94,33 @@ export const applyToJobService = async (
   };
 };
 
-export const getMyApplicationsService = async (userId: string) => {
-  return prisma.application.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    include: {
-      job: true,
-      resume: true,
-    },
-  });
+export const getMyApplicationsService = async (
+  userId: string,
+  pagination: PaginationParams
+) => {
+  const where = { userId };
+  const [applications, total] = await prisma.$transaction([
+    prisma.application.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        job: true,
+        resume: true,
+      },
+    }),
+    prisma.application.count({ where }),
+  ]);
+
+  return {
+    result: applications,
+    pagination: buildPaginationMeta({
+      page: pagination.page,
+      limit: pagination.limit,
+      total,
+    }),
+  };
 };
 
 export const updateApplicationStatusService = async (
@@ -110,7 +139,7 @@ export const updateApplicationStatusService = async (
     throw createHttpError(404, "Application not found");
   }
 
-  if (application.job.postedById && application.job.postedById !== userId) {
+  if (application.job.postedById !== userId) {
     throw createHttpError(403, "Only the job poster can update this status");
   }
 

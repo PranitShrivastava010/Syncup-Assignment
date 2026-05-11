@@ -3,7 +3,7 @@ import { z } from "zod";
 export const applyJobSchema = z.object({
   body: z.object({
     jobId: z.string().min(1),
-    resumeId: z.string().min(1).optional(),
+    resumeId: z.string().min(1),
     coverLetter: z.string().max(4000).optional(),
   }),
 });

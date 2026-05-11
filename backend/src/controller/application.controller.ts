@@ -6,6 +6,7 @@ import {
 } from "../service/application.service";
 import type { ApplicationStatus } from "../service/application.service";
 import { asyncHandler } from "../utils/asyncHandler";
+import { getPaginationParams } from "../utils/pagination";
 
 export const applyToJobController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -21,11 +22,14 @@ export const applyToJobController = asyncHandler(
 
 export const getMyApplicationsController = asyncHandler(
   async (req: Request, res: Response) => {
-    const applications = await getMyApplicationsService(req.user!.userId);
+    const result = await getMyApplicationsService(
+      req.user!.userId,
+      getPaginationParams(req.query)
+    );
 
     res.status(200).json({
       success: true,
-      result: applications,
+      ...result,
     });
   }
 );

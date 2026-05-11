@@ -5,6 +5,7 @@ import {
   uploadResumeService,
 } from "../service/resume.service";
 import { asyncHandler } from "../utils/asyncHandler";
+import { getPaginationParams } from "../utils/pagination";
 
 export const uploadResumeController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -20,11 +21,14 @@ export const uploadResumeController = asyncHandler(
 
 export const getMyResumesController = asyncHandler(
   async (req: Request, res: Response) => {
-    const resumes = await getMyResumesService(req.user!.userId);
+    const result = await getMyResumesService(
+      req.user!.userId,
+      getPaginationParams(req.query)
+    );
 
     res.status(200).json({
       success: true,
-      result: resumes,
+      ...result,
     });
   }
 );

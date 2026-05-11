@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getMyNotificationsController,
+  markAllNotificationsReadController,
   markNotificationReadController,
 } from "../controller/notification.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
@@ -10,6 +11,7 @@ import { notificationIdParamSchema } from "../validations/notification.validatio
 const router = Router();
 
 router.get("/", authMiddleware, getMyNotificationsController);
+router.patch("/read-all", authMiddleware, markAllNotificationsReadController);
 router.patch(
   "/:id/read",
   authMiddleware,

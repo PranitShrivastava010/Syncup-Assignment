@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma";
 import { emitNotificationToUser } from "../sockets/notification.socket";
 import { createHttpError } from "../utils/httpError";
+import { buildPaginationMeta, PaginationParams } from "../utils/pagination";
 
 export type CreateNotificationInput = {
   type: string;
@@ -31,11 +32,29 @@ export const createNotificationService = async (
   return notification;
 };
 
-export const getMyNotificationsService = async (userId: string) => {
-  return prisma.notification.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-  });
+export const getMyNotificationsService = async (
+  userId: string,
+  pagination: PaginationParams
+) => {
+  const where = { userId };
+  const [notifications, total] = await prisma.$transaction([
+    prisma.notification.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.limit,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.notification.count({ where }),
+  ]);
+
+  return {
+    result: notifications,
+    pagination: buildPaginationMeta({
+      page: pagination.page,
+      limit: pagination.limit,
+      total,
+    }),
+  };
 };
 
 export const markNotificationReadService = async (
@@ -60,4 +79,19 @@ export const markNotificationReadService = async (
       readAt: new Date(),
     },
   });
+};
+
+export const markAllNotificationsReadService = async (userId: string) => {
+  const result = await prisma.notification.updateMany({
+    where: {
+      userId,
+      isRead: false,
+    },
+    data: {
+      isRead: true,
+      readAt: new Date(),
+    },
+  });
+
+  return result;
 };

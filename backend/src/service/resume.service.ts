@@ -2,6 +2,7 @@ import { uploadResumeFile } from "../config/multer";
 import { prisma } from "../lib/prisma";
 import { extractPdfText } from "../utils/extractPdfText";
 import { createHttpError } from "../utils/httpError";
+import { buildPaginationMeta, PaginationParams } from "../utils/pagination";
 
 export const uploadResumeService = async (
   userId: string,
@@ -27,11 +28,29 @@ export const uploadResumeService = async (
   });
 };
 
-export const getMyResumesService = async (userId: string) => {
-  return prisma.resume.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-  });
+export const getMyResumesService = async (
+  userId: string,
+  pagination: PaginationParams
+) => {
+  const where = { userId };
+  const [resumes, total] = await prisma.$transaction([
+    prisma.resume.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.limit,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.resume.count({ where }),
+  ]);
+
+  return {
+    result: resumes,
+    pagination: buildPaginationMeta({
+      page: pagination.page,
+      limit: pagination.limit,
+      total,
+    }),
+  };
 };
 
 export const getResumeForUserService = async (

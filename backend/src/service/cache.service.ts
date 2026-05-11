@@ -28,3 +28,16 @@ export const setCachedValue = async <T>(
     console.warn(`[Redis] Write failed for ${key}`, error);
   }
 };
+
+export const incrementCachedCounter = async (key: string) => {
+  if (!redis) {
+    return null;
+  }
+
+  try {
+    return await redis.incr(key);
+  } catch (error) {
+    console.warn(`[Redis] Increment failed for ${key}`, error);
+    return null;
+  }
+};

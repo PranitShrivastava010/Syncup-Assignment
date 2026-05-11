@@ -1,10 +1,15 @@
 import { Request, Response } from "express";
 import {
   createJobService,
+  deactivateRecruiterJobService,
   getJobByIdService,
+  getRecruiterJobApplicationsService,
+  getRecruiterJobsService,
   listJobsService,
+  updateRecruiterJobService,
 } from "../service/jobs.service";
 import { asyncHandler } from "../utils/asyncHandler";
+import { getPaginationParams } from "../utils/pagination";
 
 const asString = (value: unknown) =>
   typeof value === "string" && value.trim() ? value.trim() : undefined;
@@ -39,7 +44,21 @@ export const listJobsController = asyncHandler(
       query: asString(req.query.query),
       location: asString(req.query.location),
       isRemote: asBoolean(req.query.isRemote),
+    }, getPaginationParams(req.query));
+
+    res.status(200).json({
+      success: true,
+      ...result,
     });
+  }
+);
+
+export const getRecruiterJobsController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await getRecruiterJobsService(
+      req.user!.userId,
+      getPaginationParams(req.query)
+    );
 
     res.status(200).json({
       success: true,
@@ -55,6 +74,52 @@ export const getJobByIdController = asyncHandler(
     res.status(200).json({
       success: true,
       result: job,
+    });
+  }
+);
+
+export const updateRecruiterJobController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const job = await updateRecruiterJobService(
+      req.user!.userId,
+      req.params.id as string,
+      req.body
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Job updated successfully",
+      result: job,
+    });
+  }
+);
+
+export const deactivateRecruiterJobController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const job = await deactivateRecruiterJobService(
+      req.user!.userId,
+      req.params.id as string
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Job deactivated successfully",
+      result: job,
+    });
+  }
+);
+
+export const getRecruiterJobApplicationsController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await getRecruiterJobApplicationsService(
+      req.user!.userId,
+      req.params.id as string,
+      getPaginationParams(req.query)
+    );
+
+    res.status(200).json({
+      success: true,
+      result,
     });
   }
 );

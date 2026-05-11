@@ -44,11 +44,30 @@ export const registerService = async ({
       password: await hashPassword(password),
       role: role === "RECRUITER" ? "RECRUITER" : "CANDIDATE",
     },
-    select: publicUserSelect,
   });
 
-  return user;
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = generateRefreshToken(user.id);
+
+  await prisma.userToken.create({
+    data: {
+      userId: user.id,
+      refreshToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  const sendUser = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    createdAt: user.createdAt,
+  };
+
+  return { accessToken, refreshToken, sendUser };
 };
+
 
 export const loginService = async ({ email, password }: LoginInput) => {
   const user = await prisma.user.findUnique({

@@ -14,15 +14,20 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 export const registerController = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = await registerService(req.body);
+    const { accessToken, refreshToken, sendUser } = await registerService(
+      req.body
+    );
+
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
     res.status(201).json({
       success: true,
       message: "User registered successfully",
-      result: user,
+      Result: { accessToken, sendUser },
     });
   }
 );
+
 
 export const loginController = asyncHandler(
   async (req: Request, res: Response) => {

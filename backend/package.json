@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only index.ts",
     "build": "prisma generate && tsc",
+    "postinstall": "prisma generate",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "db:seed": "ts-node prisma/seed.ts",
@@ -13,6 +14,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },
+
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
   },

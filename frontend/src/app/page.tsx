@@ -1,3 +1,9 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getAuthSession } from "@/lib/auth/session";
+import { ROUTES } from "@/routes/paths";
 import {
   BellRing,
   BrainCircuit,
@@ -38,6 +44,17 @@ const stats = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const session = getAuthSession();
+    if (session) {
+      router.replace(
+        session.user.role === "RECRUITER" ? ROUTES.recruiter : ROUTES.candidateJobs
+      );
+    }
+  }, [router]);
+
   return (
     <main className={styles.page}>
       <section className={styles.hero}>

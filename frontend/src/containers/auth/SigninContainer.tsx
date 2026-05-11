@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Lock, Mail } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthTextField } from "@/components/auth/AuthTextField";
 import { StatusMessage } from "@/components/common/StatusMessage";
 import { authApi } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
-import { saveAuthSession } from "@/lib/auth/session";
+import { getAuthSession, saveAuthSession } from "@/lib/auth/session";
 import { ROUTES } from "@/routes/paths";
 import styles from "@/components/auth/authForm.module.css";
 
@@ -35,6 +35,17 @@ export function SigninContainer() {
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ── Redirect if already logged in ─────────────────────────────────────────
+  useEffect(() => {
+    const session = getAuthSession();
+    if (session) {
+      router.replace(
+        session.user.role === "RECRUITER" ? ROUTES.recruiter : ROUTES.candidateJobs
+      );
+    }
+  }, [router]);
+
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setStatus(null);
@@ -53,10 +64,16 @@ export function SigninContainer() {
 
       setStatus({
         tone: "success",
-        message: "Signed in. Redirecting to home.",
+        message: "Signed in. Redirecting to your workspace.",
       });
 
-      window.setTimeout(() => router.push(ROUTES.home), 600);
+      window.setTimeout(() => {
+        router.push(
+          response.Result.sendUser.role === "RECRUITER"
+            ? ROUTES.recruiter
+            : ROUTES.candidateJobs
+        );
+      }, 600);
     } catch (error) {
       setStatus({
         tone: "error",

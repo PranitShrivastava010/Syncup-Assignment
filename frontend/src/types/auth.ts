@@ -39,3 +39,9 @@ export type StoredAuthSession = {
   accessToken: string;
   user: AuthUser;
 };
+
+export type RefreshResponse = {
+  success: boolean;
+  accessToken: string;
+  user: AuthUser;
+};

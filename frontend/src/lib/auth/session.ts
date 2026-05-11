@@ -2,10 +2,6 @@ import type { StoredAuthSession } from "@/types/auth";
 
 const SESSION_KEY = "syncup_auth";
 
-/**
- * Persists the auth session to localStorage so it survives
- * browser closes / tab restarts (stay-logged-in behaviour).
- */
 export const saveAuthSession = (session: StoredAuthSession) => {
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 };
@@ -33,10 +29,10 @@ export const clearAuthSession = () => {
 
 export const getAccessToken = () => getAuthSession()?.accessToken ?? null;
 
-/** Patch only the access token without touching the stored user. */
 export const updateAccessToken = (accessToken: string) => {
   const session = getAuthSession();
   if (session) {
     saveAuthSession({ ...session, accessToken });
   }
 };
+

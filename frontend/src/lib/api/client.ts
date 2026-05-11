@@ -14,30 +14,16 @@ export class ApiError extends Error {
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
   authToken?: string;
-  /**
-   * Internal flag — prevents infinite retry loops.
-   * Set automatically by the refresh interceptor.
-   */
   _isRetry?: boolean;
 };
 
-// ─── Token-refresh state ────────────────────────────────────────────────────
-
-/** True while a /api/auth/refresh call is in-flight. */
 let isRefreshing = false;
-
-/**
- * Callbacks queued while a refresh is in-flight.
- * Once the refresh resolves, each callback is called with the new token.
- */
 let refreshQueue: Array<(newToken: string | null) => void> = [];
 
 const drainQueue = (newToken: string | null) => {
   refreshQueue.forEach((cb) => cb(newToken));
   refreshQueue = [];
 };
-
-// ─── Silent token refresh ────────────────────────────────────────────────────
 
 type RefreshResult = {
   accessToken: string;
@@ -50,17 +36,11 @@ type RefreshResult = {
   };
 };
 
-/**
- * Calls POST /api/auth/refresh.  The backend reads the httpOnly `refreshToken`
- * cookie automatically — no JS access to the cookie is needed.
- *
- * Returns the new access token, or null when the refresh token is also expired.
- */
 const silentRefresh = async (): Promise<string | null> => {
   try {
     const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
       method: "POST",
-      credentials: "include", // sends the httpOnly refresh-token cookie
+      credentials: "include",
     });
 
     if (!res.ok) return null;
@@ -70,17 +50,14 @@ const silentRefresh = async (): Promise<string | null> => {
 
     if (!data.accessToken) return null;
 
-    // Lazily import to avoid circular dependency issues
     const { updateAccessToken, getAuthSession, saveAuthSession } = await import(
       "../auth/session"
     );
 
-    // Keep the existing user data; just patch the access token
     const existingSession = getAuthSession();
     if (existingSession) {
       updateAccessToken(data.accessToken);
     } else {
-      // No session in storage → build one from the refresh response
       saveAuthSession({ accessToken: data.accessToken, user: data.user as never });
     }
 
@@ -89,8 +66,6 @@ const silentRefresh = async (): Promise<string | null> => {
     return null;
   }
 };
-
-// ─── Core request helper ─────────────────────────────────────────────────────
 
 const buildRequest = (
   path: string,
@@ -127,8 +102,6 @@ const buildRequest = (
   };
 };
 
-// ─── Public API ───────────────────────────────────────────────────────────────
-
 export const apiRequest = async <T>(
   path: string,
   options: RequestOptions = {}
@@ -142,9 +115,7 @@ export const apiRequest = async <T>(
     ? await response.json()
     : null;
 
-  // ── 401 interceptor ──────────────────────────────────────────────────────
   if (response.status === 401 && !options._isRetry) {
-    // Don't try to refresh if we're already on the refresh endpoint itself
     if (path === "/api/auth/refresh") {
       throw new ApiError(401, data?.message ?? "Session expired");
     }
@@ -152,7 +123,6 @@ export const apiRequest = async <T>(
     let newToken: string | null;
 
     if (isRefreshing) {
-      // Another request already kicked off a refresh — wait for it
       newToken = await new Promise<string | null>((resolve) => {
         refreshQueue.push(resolve);
       });
@@ -164,7 +134,6 @@ export const apiRequest = async <T>(
     }
 
     if (!newToken) {
-      // Refresh token is also expired → force logout
       const { clearAuthSession } = await import("../auth/session");
       clearAuthSession();
       if (typeof window !== "undefined") {
@@ -173,7 +142,6 @@ export const apiRequest = async <T>(
       throw new ApiError(401, "Session expired. Please sign in again.");
     }
 
-    // Retry the original request once with the fresh access token
     const retry = buildRequest(path, { ...options, _isRetry: true }, newToken);
     const retryRes = await fetch(retry.url, retry.init);
 
@@ -191,7 +159,6 @@ export const apiRequest = async <T>(
 
     return retryData as T;
   }
-  // ─────────────────────────────────────────────────────────────────────────
 
   if (!response.ok) {
     throw new ApiError(
@@ -202,3 +169,4 @@ export const apiRequest = async <T>(
 
   return data as T;
 };
+
